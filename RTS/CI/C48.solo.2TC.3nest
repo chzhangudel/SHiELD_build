@@ -1,0 +1,798 @@
+#!/bin/tcsh
+#SBATCH --output=/home/jmoualle/test_mod/stdout/%x.%j
+#SBATCH --job-name=fourcoldnest
+#SBATCH --partition=orion
+#SBATCH --time=00:02:00
+#SBATCH --nodes=1
+#SBATCH --exclusive
+#SBATCH --mail-user=joseph.mouallem@noaa.gov
+#SBATCH --mail-type=ALL
+
+source ${MODULESHOME}/init/tcsh
+module load intel/2020
+module load netcdf/
+module load hdf5/
+module load impi/2020
+
+set echo
+
+set BASEDIR    = "/home/jmoualle/publicgithub/SHiELD_build/CI/BATCH-CI/"
+set BASEDIR    = "/home/jmoualle/workdir/publicgithub/SHiELD_build/CI/BATCH-CI/"
+set INPUT_DATA = "/work/noaa/gfdlscr/pdata/gfdl/SHiELD/INPUT_DATA/"
+# from YQS
+#set BUILD_AREA = "~${USER}/SHiELD/Rusty/SHiELD_build/"
+set BUILD_AREA = "/home/jmoualle/test_mod/SHiELD/SHiELD_build/"
+set BUILD_AREA = "/home/jmoualle/publicgithub/SHiELD_build/"
+#set BUILD_AREA = "/home/jmoualle/test_mod/SHiELD_chksumbug/SHiELD_build/"
+
+
+# release number for the script
+# set RELEASE = "`cat ${BUILD_AREA}/release`"
+set RELEASE = "test"
+
+#set hires_oro_factor = 3
+set res = 48
+
+set CPN = 40
+# case specific details
+set TYPE = "nh"          # choices:  nh, hydro
+set MODE = "64bit"       # choices:  32bit, 64bit
+set MONO = "non-mono"        # choices:  mono, non-mono
+set CASE = "C48n4"
+set NAME = "20150801.12Z.solo"
+set MEMO = "$SLURM_JOB_NAME"
+#set MEMO = "000000000000000000"
+set HYPT = "on"         # choices:  on, off  (controls hyperthreading)
+set COMP = "debug"       # choices:  debug, repro, prod
+set COMP = "repro"       # choices:  debug, repro, prod
+set NO_SEND = "no_send"  # choices:  send, no_send
+set EXE  = intel.x
+# directory structure
+set WORKDIR    = ${BASEDIR}/${RELEASE}/${NAME}.${CASE}.${TYPE}.${MODE}.${MONO}.${MEMO}/
+#set executable = ${BUILD_AREA}/Build/bin/SHiELD_${TYPE}.${COMP}.${MODE}.${EXE}
+set executable = ${BUILD_AREA}/Build/bin/SOLO_${TYPE}.${COMP}.${MODE}.${EXE}
+
+# sending file to gfdl
+set gfdl_archive = /archive/${USER}/SHiELD_S2S/${NAME}.${CASE}.${TYPE}.${MODE}.${MEMO}/
+set SEND_FILE = /home/jmoualle/Util/send_file_slurm.csh
+set TIME_STAMP = /home/jmoualle/Util/time_stamp.csh
+
+# input filesets
+# set ICS  = ${INPUT_DATA}/nested/C48n4/${NAME}_IC/GFS_INPUT.tar
+# set FIX  = ${INPUT_DATA}/fix_am/
+# set GFS  = ${INPUT_DATA}/GFS_STD_INPUT.tar
+# set GRID = ${INPUT_DATA}/nested/C48n4/GRID_DATA.tar
+
+# input filesets
+#set ICS     = ${INPUT_DATA}/variable.v201810/C48n4_okc/20150801.00Z_IC/GFS_INPUT.tar
+set ICS     = ${INPUT_DATA}/variable.v201810/C48n4_okc/20150801.00Z_IC/
+set FIX     = ${INPUT_DATA}/fix.v201810/
+set CLIMO_DATA = ${INPUT_DATA}/climo_data.v201807/
+set GFS  = ${INPUT_DATA}/GFS_STD_INPUT.20160311.tar #This should remain a tarball
+set GRID = ${INPUT_DATA}/variable.v201810/C48n4_okc/GRID/
+
+
+
+
+
+# changeable parameters
+    # dycore definitions
+    set npx = "49"
+    set npy = "49"
+    set npz = "63"
+    set layout_x = "12" 
+    set layout_y = "12" 
+    set io_layout = "1,1"
+########################################################   
+    set num_nest = "3" 
+    set npx_nest = (57 37 37)  
+    set npy_nest = (57 37 37)           
+    set layout_x_nest = (12 8 8)  
+    set layout_y_nest = (12 8 8) 
+    set io_layout_x_nest = (1 1 1)
+    set io_layout_y_nest = (1 1 1)
+    set nthreads = "2"
+
+    # blocking factor used for threading and general physics performance
+    set blocksize = "32"
+    set blocksize_nest = (32 32 32 32) 
+
+    # run length
+    set months = "0"
+    set days = "2"
+    set hours = "0" 
+    set minutes = "0"
+    set seconds = "600"
+    set dt_atmos = "200"
+    set nruns = "1"
+
+    # set the pre-conditioning of the solution
+    # =0 implies no pre-conditioning
+    # >0 means new adiabatic pre-conditioning
+    # <0 means older adiabatic pre-conditioning
+    set na_init = 0
+
+    # variables for controlling initialization of NCEP/NGGPS ICs
+    set filtered_terrain = ".true."
+    set ncep_plevels = ".false."
+    set ncep_levs = "64"
+    set gfs_dwinds = ".true."
+    set n_zs_filter_nest = "1"
+
+    # variables for gfs diagnostic output intervals and time to zero out time-accumulated data
+#    set fdiag = "6.,12.,18.,24.,30.,36.,42.,48.,54.,60.,66.,72.,78.,84.,90.,96.,102.,108.,114.,120.,126.,132.,138.,144.,150.,156.,162.,168.,174.,180.,186.,192.,198.,204.,210.,216.,222.,228.,234.,240."
+    set fdiag = "1."
+    set fhzer = "1."
+    set fhcyc = "6."
+
+    # determines whether FV3 or GFS physics calculate geopotential
+    set gfs_phil = ".false."
+
+    # determine whether ozone production occurs in GFS physics
+    set ozcalc = ".true."
+
+    # set various debug options
+    set no_dycore = ".F."
+    set dycore_only = ".T." 
+    set chksum_debug = ".false."
+    set print_freq = "24"
+
+    if (${TYPE} == "nh") then
+      # non-hydrostatic options
+      set make_nh = ".T."
+      set hydrostatic = ".F."
+      set phys_hydrostatic = ".F."     # can be tested
+      set use_hydro_pressure = ".F."   # can be tested
+      set consv_te = "1."
+        # time step parameters in FV3
+########################################################   
+      set k_split = "2"
+      set n_split = "6"
+      set k_split_nest = (1 1 1)    # array ?!?# 1 2 3
+      set n_split_nest = (10 10 10) # 12 11 10
+    else
+      # hydrostatic options
+      set make_nh = ".F."
+      set hydrostatic = ".T."
+      set phys_hydrostatic = ".F."     # will be ignored in hydro mode
+      set use_hydro_pressure = ".T."   # have to be .T. in hydro mode
+      set consv_te = "0."
+        # time step parameters in FV3
+      set k_split = "2"
+      set n_split = "6"
+    endif
+
+    if (${MONO} == "mono" || ${MONO} == "monotonic") then
+      # monotonic options
+      set d_con = "1."
+      set do_vort_damp = ".false."
+      if (${TYPE} == "nh") then
+        # non-hydrostatic
+        set hord_mt = " 10"
+        set hord_xx = " 10"
+      else
+        # hydrostatic
+        set hord_mt = " 10"
+        set hord_xx = " 10"
+      endif
+    else
+      # non-monotonic options
+      set d_con = "1."
+      set do_vort_damp = ".true."
+      if (${TYPE} == "nh") then
+        # non-hydrostatic
+        set hord_mt = " 6"
+        set hord_xx = " 6"
+      else
+        # hydrostatic
+        set hord_mt = " 10"
+        set hord_xx = " 10"
+      endif
+    endif
+
+    if (${MONO} == "non-mono" && ${TYPE} == "nh" ) then
+      set vtdm4 = "0.06"
+    else
+      set vtdm4 = "0.05"
+    endif
+
+    # variables for hyperthreading
+    set cores_per_node = "40"
+    if (${HYPT} == "on") then
+      set hyperthread = ".true."
+      set j_opt = "-j2"
+      set div = 2
+    else
+      set hyperthread = ".false."
+      set j_opt = "-j1"
+      set div = 1
+    endif
+
+# when running with threads, need to use the following command
+    @ npes_g1 = ${layout_x} * ${layout_y} * 6
+    
+##################################################################################
+##################################################################################
+set npes_nest = (0 0 0)   #array, grid_pes, size num_nest
+set npes_nest_total = 0
+set counter = 1
+
+while ($counter <= $num_nest)
+     @ npes_nest[$counter] = (${layout_x_nest[$counter]} * ${layout_y_nest[$counter]})
+     @ npes_nest_total += $npes_nest[$counter]
+     @ counter++
+end
+##################################################################################
+##################################################################################
+
+
+    @ npes = ${npes_g1} + ${npes_nest_total}
+    @ skip = ${nthreads} / ${div}
+    set run_cmd = "srun --label --ntasks=$npes --cpus-per-task=$skip ./$executable:t"
+
+    setenv MPICH_ENV_DISPLAY
+    setenv MPICH_MPIIO_CB_ALIGN 2
+    setenv MALLOC_MMAP_MAX_ 0
+    setenv MALLOC_TRIM_THRESHOLD_ 536870912
+    setenv NC_BLKSZ 1M
+# necessary for OpenMP when using Intel
+    setenv KMP_STACKSIZE 256m
+    setenv SLURM_CPU_BIND verbose
+
+
+rm -rf $WORKDIR/rundir
+
+mkdir -p $WORKDIR/rundir
+cd $WORKDIR/rundir
+
+mkdir -p RESTART
+
+
+
+
+# copy over the other tables and executable
+
+cp /work/noaa/gfdlscr/pdata/gfdl/gfdl_W/jmoualle/SHiELD/fv3_gfs_build/FV3GFS/RUN/RETRO/diag_table_no3d diag_table
+cp /work/noaa/gfdlscr/pdata/gfdl/gfdl_W/jmoualle/SHiELD/fv3_gfs_build/FV3GFS/RUN/RETRO/data_table data_table
+cp /work/noaa/gfdlscr/pdata/gfdl/gfdl_W/jmoualle/SHiELD/fv3_gfs_build/FV3GFS/RUN/RETRO/field_table_6species field_table
+
+cp $executable .
+
+# build the date for curr_date and diag_table from NAME
+unset echo
+set y = `echo ${NAME} | cut -c1-4`
+set m = `echo ${NAME} | cut -c5-6`
+set d = `echo ${NAME} | cut -c7-8`
+set h = `echo ${NAME} | cut -c10-11`
+set echo
+set curr_time = "${y},${m},${d},${h},0,0"
+set curr_date = "${y},${m},${d},${h}"
+
+# build the diag_table with the experiment name and date stamp
+cat >! diag_table << EOF
+${NAME}.${CASE}.${MODE}.${MONO}
+$y $m $d $h 0 0 
+EOF
+cat ${BUILD_AREA}/RUN/RETRO/diag_table_okc_hindcasts1 >> diag_table
+
+mkdir -p INPUT/
+
+# GFS standard input data
+tar xf ${GFS}
+
+# Grid and orography data
+#tar xf ${GRID}
+#ln -sf ${GRID}/* INPUT/
+ 
+# Date specific ICs
+#tar xf ${ICS}
+#ln -sf ${ICS}/* INPUT/
+
+
+#Nested grid fix for new files
+#foreach i ( $PWD/INPUT/*.tile7.nc )
+#    ln -s $i ${i:r:r}.nest02.tile7.nc
+#end
+
+cp $FIX/global_sfc_emissivity_idx.txt INPUT/sfc_emissivity_idx.txt
+cp INPUT/aerosol.dat .
+cp INPUT/co2historicaldata_201*.txt .
+cp INPUT/sfc_emissivity_idx.txt .
+cp INPUT/solarconstant_noaa_an.txt .
+set irun = 1
+
+while ( $irun <= $nruns )
+
+
+if ( $irun == 1 ) then
+
+   set nggps_ic = ".F." #T
+   set mountain = ".F." 
+   set external_ic = ".F." #T
+   set warm_start = ".F." 
+
+#else
+
+   # move the restart data into INPUT/
+   #if ($NO_SEND == "no_send") then
+   # mv RESTART/* INPUT/.
+   #else
+   # ln -s $restart_file/* INPUT/.
+   #endif
+
+   # reset values in input.nml for restart run
+   #set make_nh = ".F."
+   #set nggps_ic = ".F."
+   #set mountain = ".T."
+   #set external_ic = ".F."
+   #set warm_start = ".T."
+   #set n_zs_filter_nest = "0"
+   #set na_init = 0
+
+endif
+#cp $FIX/global_sfc_emissivity_idx.txt INPUT/sfc_emissivity_idx.txt
+#cp INPUT/aerosol.dat .
+#cp INPUT/co2historicaldata_*.txt .
+#cp INPUT/sfc_emissivity_idx.txt .
+#cp INPUT/solarconstant_noaa_an.txt .
+    #set curr_date = "0,0,0,0"
+
+#unset echo
+cat >! input.nml <<EOF
+&test_case_nml
+     test_case = 58
+     !test_case = 55
+/
+
+&atmos_model_nml
+     blocksize = $blocksize
+     chksum_debug = $chksum_debug
+     dycore_only = $dycore_only
+     fdiag = $fdiag
+/
+
+&diag_manager_nml
+     prepend_date = .F.
+     do_diag_field_log = .T.
+/
+
+&fms_io_nml
+     checksum_required   = .false.
+     max_files_r = 100,
+     max_files_w = 100,
+/
+
+&fms_affinity_nml
+     affinity = .false.
+/
+
+&fms_nml
+     clock_grain = 'ROUTINE',
+     domains_stack_size = 3000000,
+     print_memory_usage = .F.
+/
+
+!&fv_grid_nml
+!     grid_file = 'INPUT/grid_spec.nc'
+!/
+
+&fv_core_nml
+     layout   = $layout_x,$layout_y
+     io_layout = $io_layout
+     npx      = $npx
+     npy      = $npy
+     ntiles   = 6,
+     npz    = $npz
+     npz_type = 'gfs'
+     grid_type = 0
+     make_nh = $make_nh
+     fv_debug = .F.
+     range_warn = .F.
+     reset_eta = .F.
+     !n_sponge = 4
+     sg_cutoff = 150.e2 !replaces old "n_sponge"
+     nudge_qv = .F.
+     rf_fast = .F.
+     tau = 3.
+     rf_cutoff = 8.e2
+     d2_bg_k1 = 0.16
+     d2_bg_k2 = 0.02
+     kord_tm = -10
+     kord_mt =  10
+     kord_wz =  10
+     kord_tr =  10
+     hydrostatic = $hydrostatic
+     phys_hydrostatic = $phys_hydrostatic
+     use_hydro_pressure = $use_hydro_pressure
+     beta = 0.
+     a_imp = 1.
+     p_fac = 0.1
+     k_split  = $k_split
+     n_split  = $n_split
+     nwat = 6
+     na_init = $na_init
+     d_ext = 0.0
+     dnats = 1
+     fv_sg_adj = 900
+     d2_bg = 0.
+     nord =  2
+     dddmp = 0.2
+     d4_bg = 0.15
+     vtdm4 = $vtdm4
+     delt_max = 0.002
+     ke_bg = 0.
+     do_vort_damp = $do_vort_damp
+     external_ic = $external_ic
+     gfs_phil = $gfs_phil
+     nggps_ic = $nggps_ic
+     mountain = $mountain
+     ncep_ic = .F.
+     d_con = $d_con
+     hord_mt = $hord_mt
+     hord_vt = $hord_xx
+     hord_tm = $hord_xx
+     hord_dp = $hord_xx
+     hord_tr = 8
+     adjust_dry_mass = .F.
+     consv_te = $consv_te
+     do_sat_adj = .F.
+     do_inline_mp = .F. !T
+     consv_am = .F.
+     fill = .F.
+     dwind_2d = .F.
+     print_freq = $print_freq
+     warm_start = $warm_start
+     no_dycore = $no_dycore
+     z_tracer = .T.
+     adiabatic =.false.
+     write_3d_diags = .T.
+
+!     do_schmidt = .true.
+!     target_lat = 35.5
+!     target_lon = -97.5
+!     stretch_fac = 1.
+!     full_zs_filter = .F.
+
+/
+
+&fv_nest_nml
+     num_tile_top = 6
+     grid_pes        = $npes_g1 $npes_nest 
+     tile_coarse     = 0, 1, 4, 7         
+     nest_refine     = 0, 2, 2, 2
+     nest_ioffsets  = 999, 4, 10, 14 
+     nest_joffsets  = 999, 14, 20, 24
+     p_split = 1
+/
+
+&main_nml
+     months = $months
+     days  = $days
+     hours = $hours
+     minutes = $minutes
+     seconds = $seconds
+     dt_atmos = $dt_atmos
+     current_time =  $curr_date !for solo
+     !memuse_verbose = .T.
+     atmos_nthreads = $nthreads
+     use_hyper_thread = $hyperthread
+/
+
+&external_ic_nml 
+     filtered_terrain = $filtered_terrain
+     levp = $ncep_levs
+     gfs_dwinds = $gfs_dwinds
+     checker_tr = .F.
+     nt_checker = 0
+/
+
+&gfdl_mp_nml
+     do_qa=.false.
+/
+
+&sim_phys_nml
+     do_GFDL_sim_phys = .F.
+/
+
+&interpolator_nml
+     interp_method = 'conserve_great_circle'
+/
+
+EOF
+
+
+
+
+! ADD a loop here to generate nest namelists?!
+!#####################################################
+!#####################################################
+
+
+set counter = 0
+set counterr = 0
+while ($counter < $num_nest)
+
+
+
+
+@ counter++
+@ counterr = $counter + 1
+#Use double digit number for $counter
+cat >! input_nest0$counterr.nml <<EOF
+&test_case_nml
+     test_case = 58
+     !test_case = 55
+/
+
+&atmos_model_nml
+     blocksize = $blocksize_nest[$counter]
+     chksum_debug = $chksum_debug
+     dycore_only = $dycore_only
+     fdiag = $fdiag
+/
+
+&diag_manager_nml
+     prepend_date = .F.
+     do_diag_field_log = .T.
+/
+
+&fms_io_nml
+     checksum_required   = .false.
+     max_files_r = 100,
+     max_files_w = 100,
+/
+
+&fms_affinity_nml
+     affinity = .false.
+/
+
+&fms_nml
+     clock_grain = 'ROUTINE',
+     domains_stack_size = 3000000,
+     print_memory_usage = .F.
+/
+
+!&fv_grid_nml
+!     grid_file = 'INPUT/grid_spec.nc'
+!/
+
+&fv_core_nml
+     layout   = $layout_x_nest[$counter], $layout_y_nest[$counter]	
+     io_layout = $io_layout_x_nest[$counter],$io_layout_y_nest[$counter]
+     npx      = $npx_nest[$counter]
+     npy      = $npy_nest[$counter]
+     ntiles   = 1,
+     npz    = $npz
+     npz_type = 'gfs'
+     grid_type = 0
+     make_nh = $make_nh
+     fv_debug = .F.
+     range_warn = .F.
+     reset_eta = .F.
+     !n_sponge = 4
+     sg_cutoff = 150.e2 !replaces old "n_sponge"
+     nudge_qv = .F.
+     rf_fast = .F.
+     tau = 3.
+     rf_cutoff = 8.e2
+     d2_bg_k1 = 0.16
+     d2_bg_k2 = 0.02
+     kord_tm = -10
+     kord_mt =  10
+     kord_wz =  10
+     kord_tr =  10
+     hydrostatic = $hydrostatic
+     phys_hydrostatic = $phys_hydrostatic
+     use_hydro_pressure = $use_hydro_pressure
+     beta = 0.
+     a_imp = 1.
+     p_fac = 0.1
+     k_split  = $k_split_nest[$counter]
+     n_split  = $n_split_nest[$counter]
+     nwat = 6
+     na_init = $na_init
+     d_ext = 0.0
+     dnats = 1
+     fv_sg_adj = 900
+     d2_bg = 0.
+     nord =  2
+     dddmp = 0.2
+     d4_bg = 0.15
+     vtdm4 = 0.06
+     ke_bg = 0.
+     do_vort_damp = $do_vort_damp
+     external_ic = $external_ic
+     gfs_phil = $gfs_phil
+     nggps_ic = $nggps_ic
+     mountain = $mountain
+     ncep_ic = .F.
+     d_con = 0.0
+     hord_mt = $hord_mt
+     hord_vt = $hord_xx
+     hord_tm = $hord_xx
+     hord_dp = $hord_xx
+     hord_tr = 8
+     adjust_dry_mass = .F.
+     consv_te = 0.
+     do_sat_adj = .F.
+     do_inline_mp = .F. !T
+     consv_am = .F.
+     fill = .F.
+     dwind_2d = .F.
+     print_freq = $print_freq
+     warm_start = $warm_start
+     no_dycore = $no_dycore
+     z_tracer = .T.
+     adiabatic =.false.
+     write_3d_diags = .T.
+     twowaynest=.T.
+     nestupdate=7
+/
+
+&main_nml
+     months = $months
+     days  = $days
+     hours = $hours
+     minutes = $minutes
+     seconds = $seconds
+     dt_atmos = $dt_atmos
+     current_time =  $curr_date !for solo
+     !memuse_verbose = .T.
+     atmos_nthreads = $nthreads
+     use_hyper_thread = $hyperthread
+/
+
+&external_ic_nml 
+     filtered_terrain = $filtered_terrain
+     levp = $ncep_levs
+     gfs_dwinds = $gfs_dwinds
+     checker_tr = .F.
+     nt_checker = 0
+/
+
+&gfdl_mp_nml
+     do_qa=.false.
+/
+
+&sim_phys_nml
+     do_GFDL_sim_phys = .F.
+/
+
+&interpolator_nml
+     interp_method = 'conserve_great_circle'
+/
+
+EOF
+
+
+end
+
+
+
+
+# run the executable
+
+   sleep 1
+   ${run_cmd} | tee fms.out
+   if ( $? != 0 ) then
+	exit
+   endif
+    @ irun++
+
+if ($NO_SEND == "no_send") then
+  continue
+endif
+
+#########################################################################
+# generate date for file names
+########################################################################
+
+    set begindate = `$TIME_STAMP -bhf digital`
+    if ( $begindate == "" ) set begindate = tmp`date '+%j%H%M%S'`
+
+    set enddate = `$TIME_STAMP -ehf digital`
+    if ( $enddate == "" ) set enddate = tmp`date '+%j%H%M%S'`
+    set fyear = `echo $enddate | cut -c -4`
+
+    cd $WORKDIR/rundir
+    cat time_stamp.out
+
+########################################################################
+# save ascii output files
+########################################################################
+
+    if ( ! -d $WORKDIR/ascii ) mkdir $WORKDIR/ascii
+    if ( ! -d $WORKDIR/ascii ) then
+     echo "ERROR: $WORKDIR/ascii is not a directory."
+     exit 1
+    endif
+
+    foreach out (`ls *.out *.results *.nml *_table`)
+      mv $out $begindate.$out
+    end
+
+    tar cvf - *\.out *\.results *\.nml *_table | gzip -c > $WORKDIR/ascii/$begindate.ascii_out.tgz
+
+    msub -v source=$WORKDIR/ascii/$begindate.ascii_out.tgz,destination=gfdl:$gfdl_archive/ascii/$begindate.ascii_out.tgz,extension=null,type=ascii $SEND_FILE
+
+########################################################################
+# move restart files
+########################################################################
+
+    cd $WORKDIR
+
+    if ( ! -d $WORKDIR/restart ) mkdir -p $WORKDIR/restart
+
+    if ( ! -d $WORKDIR/restart ) then
+      echo "ERROR: $WORKDIR/restart is not a directory."
+      exit
+    endif
+
+    find $WORKDIR/rundir/RESTART -iname '*.res*' > $WORKDIR/rundir/file.restart.list.txt
+    set resfiles     = `wc -l $WORKDIR/rundir/file.restart.list.txt | awk '{print $1}'`
+
+   if ( $resfiles > 0 ) then
+
+      set dateDir = $WORKDIR/restart/$enddate
+      set restart_file = $dateDir
+
+      set list = `ls -C1 $WORKDIR/rundir/RESTART`
+#      if ( $irun < $segmentsPerJob ) then
+#        rm -r $workDir/INPUT/*.res*
+#        foreach index ($list)
+#          cp $workDir/RESTART/$index $workDir/INPUT/$index
+#        end
+#      endif
+
+      if ( ! -d $dateDir ) mkdir -p $dateDir
+
+      if ( ! -d $dateDir ) then
+        echo "ERROR: $dateDir is not a directory."
+        exit
+      endif
+
+      foreach index ($list)
+        mv $WORKDIR/rundir/RESTART/$index $restart_file/$index
+      end
+
+      msub -v source=$WORKDIR/restart/$enddate,destination=gfdl:$gfdl_archive/restart/$enddate,extension=tar,type=restart $SEND_FILE
+
+   endif
+
+
+########################################################################
+# move history files
+########################################################################
+
+    cd $WORKDIR
+
+    if ( ! -d $WORKDIR/history ) mkdir -p $WORKDIR/history
+    if ( ! -d $WORKDIR/history ) then
+      echo "ERROR: $WORKDIR/history is not a directory."
+      exit 1
+    endif
+
+    set dateDir = $WORKDIR/history/$begindate
+    if ( ! -d  $dateDir ) mkdir $dateDir
+    if ( ! -d  $dateDir ) then
+      echo "ERROR: $dateDir is not a directory."
+      exit 1
+    endif
+
+    find $WORKDIR/rundir -maxdepth 1 -type f -regex '.*.nc'      -exec mv {} $dateDir \;
+    find $WORKDIR/rundir -maxdepth 1 -type f -regex '.*.nc.....' -exec mv {} $dateDir \;
+
+    cd $dateDir
+      if ( ! -d ${begindate}_nggps3d ) mkdir -p ${begindate}_nggps3d
+      mv *nggps3d*.nc* ${begindate}_nggps3d
+      mv ${begindate}_nggps3d ../.
+      if ( ! -d ${begindate}_tracer3d ) mkdir -p ${begindate}_tracer3d
+      mv *tracer3d*.nc* ${begindate}_tracer3d
+      mv ${begindate}_tracer3d ../.
+
+    cd $WORKDIR/rundir
+
+    msub -v source=$WORKDIR/history/$begindate,destination=gfdl:$gfdl_archive/history/$begindate,extension=tar,type=history $SEND_FILE
+    msub -v source=$WORKDIR/history/${begindate}_nggps3d,destination=gfdl:$gfdl_archive/history/${begindate}_nggps3d,extension=tar,type=history $SEND_FILE
+    msub -v source=$WORKDIR/history/${begindate}_tracer3d,destination=gfdl:$gfdl_archive/history/${begindate}_tracer3d,extension=tar,type=history $SEND_FILE
+end # while ( $irun <= $nruns )
