@@ -49,6 +49,7 @@ git clone -b ${drivers_release}   https://github.com/JosephMouallem/atmos_driver
 git clone -b ${ocean_release}   https://github.com/JosephMouallem/ocean_null
 git clone -b ${land_release}   https://github.com/JosephMouallem/land_null
 git clone -b ${ice_release}   https://github.com/JosephMouallem/ice_null
+git clone  https://github.com/NOAA-GFDL/ice_param
 
 #Automatic release tracking from Matt M.
 echo $release > release
