@@ -83,6 +83,7 @@ elif [ ${CONFIG} = 'shield' ] ; then
       SHiELD_physics/FV3GFS/ \
       atmos_drivers/SHiELD/atmos_model.F90 \
       FMSCoupler/full/ \
+      FMSCoupler/shared/ \
       GFDL_atmos_cubed_sphere/driver/SHiELD/atmosphere.F90 \
       GFDL_atmos_cubed_sphere/tools/ \
       GFDL_atmos_cubed_sphere/model/ \
