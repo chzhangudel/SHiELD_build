@@ -89,6 +89,7 @@ elif [ ${CONFIG} = 'shield' ] ; then
       GFDL_atmos_cubed_sphere/model/ \
       GFDL_atmos_cubed_sphere/GFDL_tools/fv_diag_column.F90 \
       ocean_null/ \
+      atmos_null/ \
       ice_null/ \
       ice_param/ \
       land_null/
