@@ -40,7 +40,7 @@ comp="prod"
 for arg in "$@"
 do
     case $arg in
-        shield|solo)
+        shield|solo|shieldfull)
           CONFIG="${arg#*=}"
           shift # Remove CONFIG from processing
           ;;
@@ -87,7 +87,16 @@ if [ ${CONFIG} = 'shield' ] ; then
   NCEPLIBS+=" -L${NCEP_DIR}/nceplibs/${COMPILER}/ -lbacio  -lsp_d  -lw3emc_d  -lw3nco_d"
 fi
 
+if [ ${CONFIG} = 'shieldfull' ] ; then
+  NCEPLIBS+=" ./libgfs.a"
+  NCEPLIBS+=" -L${NCEP_DIR}/nceplibs/${COMPILER}/ -lbacio  -lsp_d  -lw3emc_d  -lw3nco_d"
+fi
+
 if [ ${CONFIG} = 'shield' ] ; then
+  (cd exec/${CONFIG}_${HYDRO}.${comp}.${bit}.${COMPILER} ; make -j 8 OPENMP=Y ${COMP} AVX=${AVX} -f Makefile_gfs)
+fi
+
+if [ ${CONFIG} = 'shieldfull' ] ; then
   (cd exec/${CONFIG}_${HYDRO}.${comp}.${bit}.${COMPILER} ; make -j 8 OPENMP=Y ${COMP} AVX=${AVX} -f Makefile_gfs)
 fi
 (cd exec/${CONFIG}_${HYDRO}.${comp}.${bit}.${COMPILER} ; make -j 8 OPENMP=Y NETCDF=3 ${COMP} AVX=${AVX} ${BIT} NCEPLIBS="${NCEPLIBS}" -f Makefile_fv3)
