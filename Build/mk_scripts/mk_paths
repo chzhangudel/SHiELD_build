@@ -101,7 +101,7 @@ elif [ ${CONFIG} = 'shieldfull' ] ; then
       atmos_drivers/SHiELDFULL/atmos_model.F90 \
       FMSCoupler/full/ \
       FMSCoupler/shared/ \
-      GFDL_atmos_cubed_sphere/driver/SHiELD/atmosphere.F90 \
+      GFDL_atmos_cubed_sphere/driver/SHiELDFULL/atmosphere.F90 \
       GFDL_atmos_cubed_sphere/tools/ \
       GFDL_atmos_cubed_sphere/model/ \
       GFDL_atmos_cubed_sphere/GFDL_tools/fv_diag_column.F90 \
