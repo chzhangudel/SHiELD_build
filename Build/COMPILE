@@ -229,8 +229,16 @@ fi
 # to start we will always delete and build mom6
   # I think mom6 needs to be built in 64bit for now?
   # I can only get it to compiler with 64bit FMS
-  \rm -rf mom6/${compiler}/*
-  ./BUILDmom6 ${compiler} ${bit} >> build_mom6.${bit}.${compiler}.out 2>&1
+  \rm -rf mom6/${compiler}/* #joseph should be mom6/*
+  ./BUILDmom6 ${compiler} ${bit}
+
+     echo "DONE WITH MOM6"
+
+# for sis2
+  \rm -rf sis2/${compiler}/*
+  ./BUILDsis2 ${compiler} ${bit}
+     echo "DONE WITH SIS2"
+
 #
 # ensure the build and final executable locations are available
   mkdir -p ./exec/${config}_${hydro}.${comp}.${bit}.${compiler}
