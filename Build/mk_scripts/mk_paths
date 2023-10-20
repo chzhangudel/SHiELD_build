@@ -82,11 +82,13 @@ elif [ ${CONFIG} = 'shield' ] ; then
   list_paths -o ${BUILD_ROOT}/Build/exec/${CONFIG}_${HYDRO}.${COMP}.${BIT}.${COMPILER}/pathnames_fv3 \
       SHiELD_physics/FV3GFS/ \
       atmos_drivers/SHiELD/atmos_model.F90 \
-      FMSCoupler/SHiELD/coupler_main.F90 \
       GFDL_atmos_cubed_sphere/driver/SHiELD/atmosphere.F90 \
       GFDL_atmos_cubed_sphere/tools/ \
       GFDL_atmos_cubed_sphere/model/ \
       GFDL_atmos_cubed_sphere/GFDL_tools/fv_diag_column.F90
+
+  list_paths -o ${BUILD_ROOT}/Build/exec/${CONFIG}_${HYDRO}.${COMP}.${BIT}.${COMPILER}/pathnames_driver \
+      FMSCoupler/SHiELD/coupler_main.F90
 
 elif [ ${CONFIG} = 'shieldfull' ] ; then
   list_paths -o ${BUILD_ROOT}/Build/exec/${CONFIG}_${HYDRO}.${COMP}.${BIT}.${COMPILER}/pathnames_gfs \
@@ -98,67 +100,20 @@ elif [ ${CONFIG} = 'shieldfull' ] ; then
 
   list_paths -o ${BUILD_ROOT}/Build/exec/${CONFIG}_${HYDRO}.${COMP}.${BIT}.${COMPILER}/pathnames_fv3 \
       SHiELD_physics/FV3GFS/ \
-      atmos_drivers/SHiELDFULL/atmos_model.F90 \
-      FMSCoupler/full/ \
-      FMSCoupler/shared/ \
-      GFDL_atmos_cubed_sphere/driver/SHiELDFULL/atmosphere.F90 \
       GFDL_atmos_cubed_sphere/tools/ \
       GFDL_atmos_cubed_sphere/model/ \
       GFDL_atmos_cubed_sphere/GFDL_tools/fv_diag_column.F90 \
-      ocean_null/ \
       atmos_null/ \
-      ice_null/ \
-      ice_param/ \
       land_null/
-+#
-+# Not sure if ideally we need to create seperate pathnames for null drivers
-+
 
 
 
+  list_paths -o ${BUILD_ROOT}/Build/exec/${CONFIG}_${HYDRO}.${COMP}.${BIT}.${COMPILER}/pathnames_driver \
+      atmos_drivers/SHiELDFULL/atmos_model.F90 \
+      GFDL_atmos_cubed_sphere/driver/SHiELDFULL/atmosphere.F90 \
+      FMSCoupler/full/ \
+      FMSCoupler/shared/
 
-#  list_paths -o ${BUILD_ROOT}/Build/exec/${CONFIG}_${HYDRO}.${COMP}.${BIT}.${COMPILER}/pathnames_fv3 \
-#      SHiELD_physics/FV3GFS/ \
-#      atmos_drivers/SHiELD/atmos_model.F90 \
-#      FMSCoupler/full/ \
-#      GFDL_atmos_cubed_sphere/driver/SHiELD/atmosphere.F90 \
-#      GFDL_atmos_cubed_sphere/tools/ \
-#      GFDL_atmos_cubed_sphere/model/ \
-#      GFDL_atmos_cubed_sphere/GFDL_tools/fv_diag_column.F90 \
-#      ice_sis/ \
-#      ice_param/ \
-#      atmos_drivers/SHiELD/land_model.F90 
-#
-# update this
-#  list_paths -o ${BUILD_ROOT}/Build/exec/${CONFIG}_${HYDRO}.${COMP}.${BIT}.${COMPILER}/pathnames_mom6 \
-#      MOM6/config_src/{infra/FMS2,memory/dynamic_symmetric,drivers/FMS_cap} \
-#      MOM6/config_src/external/{database_comms,drifters,ODA_hooks,stochastic_physics} \
-#      MOM6/src/{*,*/*} \
-#      MOM6/pkg/GSW-Fortran/{modules,toolbox}/ \
-#      MOM6/pkg/CVMix-src/{src,src/drivers,src/shared}/
-#
-#      MOM6/config_src/infra/FMS2/ \
-#      MOM6/config_src/dynamic_symmetric/ \
-#      MOM6/config_src/drivers/FMS_cap/ \
-#      MOM6/config_src/external/database_comms/ \
-#      MOM6/config_src/external/drifters/ \
-#      MOM6/config_src/external/ODA_hooks/ \
-#      MOM6/config_src/external/stochastic_physics/ \
-#      MOM6/src/ \
-#      MOM6/pkg/GSW-Fortran/modules/ \
-#      MOM6/pkg/GSW-Fortran/toolbox/ \
-#      MOM6/pkg/CVMix-src/src/ \
-#      MOM6/pkg/CVMix-src/src/drivers/ \
-#      MOM6/pkg/CVMix-src/src/shared/ \
-#
-
-
-#  list_paths -o ${BUILD_ROOT}/Build/exec/${CONFIG}_${HYDRO}.${COMP}.${BIT}.${COMPILER}/pathnames_ice \
-#      ice_sis/ \
-#      ice_param/
-#
-#  list_paths -o ${BUILD_ROOT}/Build/exec/${CONFIG}_${HYDRO}.${COMP}.${BIT}.${COMPILER}/pathnames_land \
-#      atmos_drivers/SHiELD/land_model.F90 
 fi
 
 popd
