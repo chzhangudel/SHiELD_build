@@ -36,7 +36,7 @@ COMPILER="intel"
 for arg in "$@"
 do
     case $arg in
-        shield|solo|shieldfull)
+        shield|solo|shieldfull|shiemom)
         CONFIG="${arg#*=}"
         shift # Remove CONFIG from processing
         ;;
@@ -70,7 +70,7 @@ GFS_cppDefs="-DNEW_TAUCTMAX -DNEMS_GSM -DINTERNAL_FILE_NML"
 FV3_cppDefs="-Duse_libMPI -Duse_netCDF -DHAVE_SCHED_GETAFFINITY -DSPMD -Duse_LARGEFILE -DINTERNAL_FILE_NML"
 if [ ${CONFIG} = 'shield' ] ; then
   FV3_cppDefs+=" -DGFS_PHYS -DUSE_GFSL63"
-elif [ ${CONFIG} = 'shieldfull' ] ; then
+elif [ ${CONFIG} = 'shieldfull' ] || [ ${CONFIG} = 'shiemom' ]  ; then
   FV3_cppDefs+=" -DGFS_PHYS -DUSE_GFSL63 -D_USE_LEGACY_LAND_ -DLAND_GRID_FROM_ATMOS"
 elif [ ${CONFIG} = 'solo' ] ; then
   FV3_cppDefs+=" -DDCMIP -DDYCORE_SOLO -DHIWPP"
@@ -89,7 +89,7 @@ pushd exec/${CONFIG}_${HYDRO}.${COMP}.${BIT}.${COMPILER}/
 ############################
 #---CREATE MAKEFILES
 ############################
-if [ ${CONFIG} = 'shield' ] ; then
+if [ ${CONFIG} = 'shield' ] || [ ${CONFIG} = 'shieldfull' ]  ; then
   mkmf -m Makefile_gfs -a ${SHiELD_SRC} -t "${BUILD_ROOT}/${TEMPLATE}" -o "-cpp" -c "${GFS_cppDefs}" \
            -p libgfs.a ${BUILD_ROOT}/Build/exec/${CONFIG}_${HYDRO}.${COMP}.${BIT}.${COMPILER}/pathnames_gfs
 
@@ -102,7 +102,7 @@ if [ ${CONFIG} = 'shield' ] ; then
            ${BUILD_ROOT}/Build/exec/${CONFIG}_${HYDRO}.${COMP}.${BIT}.${COMPILER}/pathnames_driver
 
 
-elif [ ${CONFIG} = 'shieldfull' ] ; then
+elif [ ${CONFIG} = 'shiemom' ] ; then
   mkmf -m Makefile_gfs -a ${SHiELD_SRC} -t "${BUILD_ROOT}/${TEMPLATE}" -o "-cpp" -c "${GFS_cppDefs}" \
            -p libgfs.a ${BUILD_ROOT}/Build/exec/${CONFIG}_${HYDRO}.${COMP}.${BIT}.${COMPILER}/pathnames_gfs
 
@@ -126,7 +126,7 @@ fi
 sed 's/LDFLAGS/NCEPLIBS) $(LDFLAGS/g' < Makefile_fv3 > OUT
 mv OUT Makefile_fv3
 
-if [ ${CONFIG} = 'shield' ] ||  [ ${CONFIG} = 'shieldfull' ] ; then
+if [ ${CONFIG} = 'shield' ] ||  [ ${CONFIG} = 'shieldfull' ] || [ ${CONFIG} = 'shiemom' ] ; then
   sed 's/LDFLAGS/NCEPLIBS) $(LDFLAGS/g' < Makefile_driver > OUT
   mv OUT Makefile_driver
 fi
@@ -134,7 +134,7 @@ fi
 #---COMPILE -O0 (for speed)
 #---GFS_diagnostics.F90
 ############################
-if [ ${CONFIG} = 'shield' ] ||  [ ${CONFIG} = 'shieldfull' ]  ; then
+if [ ${CONFIG} = 'shield' ] ||  [ ${CONFIG} = 'shieldfull' ]  || [ ${CONFIG} = 'shiemom' ] ; then
   sed -i 's"$(FC) $(CPPDEFS) $(FPPFLAGS) $(FFLAGS) $(OTHERFLAGS) $(OTHER_FFLAGS) -c\t$(SRCROOT)SHiELD_physics/GFS_layer/GFS_diagnostics.F90" $(FC) $(CPPDEFS) $(FPPFLAGS) $(FFLAGS) $(OTHERFLAGS) $(OTHER_FFLAGS) -O0 -c\t$(SRCROOT)SHiELD_physics/GFS_layer/GFS_diagnostics.F90" ' Makefile_gfs
 fi
 
