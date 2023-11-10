@@ -17,12 +17,20 @@ The top level directory structure groups source code and input files as follow:
 | ```site/```          | contains site specific scripts and compiler make templates |
 
 # Compiling
+# Modified by Joseph
 
 Be sure to download the mkmf submodule prior to beginning.  To use:
 
  1) checkout code via CHECKOUT_code script
+    - ./CHECKOUT_code will checkout necessary files for shields (running with either simple or full coupler)
+    - ./CHECKOUT_code will automatically run ./CHECKOUT_mom6 for mom6/sis2 files
+
  2) cd Build and execute ./COMPILE script with the --help option to see usage
- 3) sample compile:  ./COMPILE shield nh repro 32bit intel
+    a) ./COMPILE shield:     will compile shield with simple coupler
+    b) ./COMPILE shieldfull: will compile shield with full coupler (utilizing null modules for ocean, land, ice)
+    c) ./COMPILE shiemom:    will compile mom6, sis2, fv3, gfs as libraries and link them to the full coupler (no null ocean and ice modules.)
+
+#carefull about the environment setup if it not on gaea
 
 # Disclaimer
 
