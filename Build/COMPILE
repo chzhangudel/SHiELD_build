@@ -216,6 +216,7 @@ fi
         exit 2
      fi
   fi
+     ./BUILDlibfms ${compiler} ${yaml}
 # check to make sure nceplibs exists
   if [ -d ${NCEP_DIR}/nceplibs/${compiler} ] && [ -e ${NCEP_DIR}/nceplibs/${compiler}/libbacio.a ] && \
      [ -e ${NCEP_DIR}/nceplibs/${compiler}/libsp_d.a ] && [ -e ${NCEP_DIR}/nceplibs/${compiler}/libw3emc_d.a ] && \
