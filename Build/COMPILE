@@ -50,7 +50,7 @@ spin()
 # configure your build parameters
   config="shield"
   hydro="nh"
-  comp="debug"
+  comp="repro"
   bit="64bit"
   avx="Y"
   compiler="intel"
