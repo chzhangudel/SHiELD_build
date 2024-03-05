@@ -56,7 +56,7 @@ hostname=`hostname`
        module load PrgEnv-intel/8.3.3
        module unload intel intel-classic intel-oneapi
        module load intel-classic/2022.0.2
-       module load fre/bronx-20
+       module load fre/bronx-21
        module load cray-hdf5/1.12.2.3
        module load libyaml/0.2.5
  
@@ -65,7 +65,7 @@ hostname=`hostname`
        export F_UFMTENDIAN=big
 
        module list
-       export PATH="/ncrc/home2/fms/local/opt/fre-commands/bronx-20/bin:${PATH}"
+       export PATH="/ncrc/home2/fms/local/opt/fre-commands/bronx-21/bin:${PATH}"
        module unload cray-libsci
        module load git
        set fyear=1958
