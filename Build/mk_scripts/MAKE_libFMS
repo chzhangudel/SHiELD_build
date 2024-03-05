@@ -72,7 +72,7 @@ pushd ${NCEP_DIR}/libFMS/${COMPILER}/${bit}
 mkmf -m Makefile -a ${SHiELD_SRC} -t "${BUILD_ROOT}/${TEMPLATE}" -c "$cppDefs" \
      -p libFMS.a ${NCEP_DIR}/libFMS/${COMPILER}/${bit}/pathnames_fms
 echo "building ${NCEP_DIR}/libFMS/${COMPILER}/32bit/libFMS.a..."
-make -j8 OPENMP=Y AVX=Y DEBUG=Y 32BIT=Y Makefile libFMS.a >& Build_libFMS.out
+make -j8 OPENMP=Y AVX=Y 32BIT=Y Makefile libFMS.a >& Build_libFMS.out
 
 #
 # test and report on build success
@@ -95,7 +95,7 @@ pushd ${NCEP_DIR}/libFMS/${COMPILER}/${bit}
 mkmf -m Makefile -a ${SHiELD_SRC} -t "${BUILD_ROOT}/${TEMPLATE}" -c "$cppDefs" \
      -p libFMS.a ${NCEP_DIR}/libFMS/${COMPILER}/${bit}/pathnames_fms
 echo "building ${NCEP_DIR}/libFMS/${COMPILER}/64bit/libFMS.a..."
-make -j8 OPENMP=Y AVX=Y DEBUG=Y Makefile libFMS.a >& Build_libFMS.out
+make -j8 OPENMP=Y AVX=Y Makefile libFMS.a >& Build_libFMS.out
 
 #
 # test and report on build success
