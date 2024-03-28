@@ -1,30 +1,18 @@
 #!/bin/tcsh
-#SBATCH --output=/home/jmoualle/test_mod/stdout/%x.%j
+#SBATCH --output=/ncrc/home2/jmoualle/mcmc/run/stdout/%x.%j
 #SBATCH --job-name=fourcoldnest
-#SBATCH --partition=orion
-#SBATCH --time=00:02:00
-#SBATCH --nodes=1
-#SBATCH --exclusive
-#SBATCH --mail-user=joseph.mouallem@noaa.gov
-#SBATCH --mail-type=ALL
-
-source ${MODULESHOME}/init/tcsh
-module load intel/2020
-module load netcdf/
-module load hdf5/
-module load impi/2020
+##SBATCH --qos=debug
+#SBATCH --account=gfdl_w
+#SBATCH --time=0:10:00
+#SBATCH --clusters=c4
+#SBATCH --nodes=34
 
 set echo
 
-set BASEDIR    = "/home/jmoualle/publicgithub/SHiELD_build/CI/BATCH-CI/"
-set BASEDIR    = "/home/jmoualle/workdir/publicgithub/SHiELD_build/CI/BATCH-CI/"
-set INPUT_DATA = "/work/noaa/gfdlscr/pdata/gfdl/SHiELD/INPUT_DATA/"
-# from YQS
-#set BUILD_AREA = "~${USER}/SHiELD/Rusty/SHiELD_build/"
-set BUILD_AREA = "/home/jmoualle/test_mod/SHiELD/SHiELD_build/"
-set BUILD_AREA = "/home/jmoualle/publicgithub/SHiELD_build/"
-#set BUILD_AREA = "/home/jmoualle/test_mod/SHiELD_chksumbug/SHiELD_build/"
-
+set BASEDIR    = "/gpfs/f5/gfdl_w/scratch/Joseph.Mouallem/mcmc/"
+set INPUT_DATA = "/gpfs/f5/gfdl_w/proj-shared/SHiELD_INPUT_DATA/"
+set BUILD_AREA = "/ncrc/home2/Joseph.Mouallem/mcmc/SHiELD_build/"
+set SCRIPT_AREA = "/ncrc/home2/Joseph.Mouallem/SHiELD/SHiELD_run/"
 
 # release number for the script
 # set RELEASE = "`cat ${BUILD_AREA}/release`"
@@ -72,23 +60,20 @@ set GFS  = ${INPUT_DATA}/GFS_STD_INPUT.20160311.tar #This should remain a tarbal
 set GRID = ${INPUT_DATA}/variable.v201810/C48n4_okc/GRID/
 
 
-
-
-
 # changeable parameters
     # dycore definitions
     set npx = "49"
     set npy = "49"
     set npz = "63"
-    set layout_x = "12" 
-    set layout_y = "12" 
+    set layout_x = "10"
+    set layout_y = "10"
     set io_layout = "1,1"
 ########################################################   
     set num_nest = "3" 
     set npx_nest = (57 37 37)  
     set npy_nest = (57 37 37)           
-    set layout_x_nest = (12 8 8)  
-    set layout_y_nest = (12 8 8) 
+    set layout_x_nest = (8 2 2)
+    set layout_y_nest = (8 2 2)
     set io_layout_x_nest = (1 1 1)
     set io_layout_y_nest = (1 1 1)
     set nthreads = "2"
@@ -99,10 +84,10 @@ set GRID = ${INPUT_DATA}/variable.v201810/C48n4_okc/GRID/
 
     # run length
     set months = "0"
-    set days = "2"
+    set days = "5"
     set hours = "0" 
     set minutes = "0"
-    set seconds = "600"
+    set seconds = "0"
     set dt_atmos = "200"
     set nruns = "1"
 
@@ -123,7 +108,7 @@ set GRID = ${INPUT_DATA}/variable.v201810/C48n4_okc/GRID/
 #    set fdiag = "6.,12.,18.,24.,30.,36.,42.,48.,54.,60.,66.,72.,78.,84.,90.,96.,102.,108.,114.,120.,126.,132.,138.,144.,150.,156.,162.,168.,174.,180.,186.,192.,198.,204.,210.,216.,222.,228.,234.,240."
     set fdiag = "1."
     set fhzer = "1."
-    set fhcyc = "6."
+    set fhcyc = "1."
 
     # determines whether FV3 or GFS physics calculate geopotential
     set gfs_phil = ".false."
@@ -135,7 +120,7 @@ set GRID = ${INPUT_DATA}/variable.v201810/C48n4_okc/GRID/
     set no_dycore = ".F."
     set dycore_only = ".T." 
     set chksum_debug = ".false."
-    set print_freq = "24"
+    set print_freq = "12"
 
     if (${TYPE} == "nh") then
       # non-hydrostatic options
@@ -247,14 +232,79 @@ cd $WORKDIR/rundir
 
 mkdir -p RESTART
 
+cat >! field_table <<EOF
+
+ "TRACER", "atmos_mod", "sphum"
+           "longname",     "specific humidity"
+           "units",        "kg/kg"
+           "profile_type", "fixed", "surface_value=3.e-6" /
+
+# prognostic cloud water mixing ratio
+ "TRACER", "atmos_mod", "liq_wat"
+           "longname",     "cloud water mixing ratio"
+           "units",        "kg/kg"
+       "profile_type", "fixed", "surface_value=1.e30" /
+ "TRACER", "atmos_mod", "rainwat"
+           "longname",     "rain mixing ratio"
+           "units",        "kg/kg"
+       "profile_type", "fixed", "surface_value=1.e30" /
+ "TRACER", "atmos_mod", "ice_wat"
+           "longname",     "cloud ice mixing ratio"
+           "units",        "kg/kg"
+       "profile_type", "fixed", "surface_value=1.e30" /
+ "TRACER", "atmos_mod", "snowwat"
+           "longname",     "snow mixing ratio"
+           "units",        "kg/kg"
+       "profile_type", "fixed", "surface_value=1.e30" /
+ "TRACER", "atmos_mod", "graupel"
+           "longname",     "graupel mixing ratio"
+           "units",        "kg/kg"
+       "profile_type", "fixed", "surface_value=1.e30" /
+# prognostic ozone mixing ratio tracer
+ "TRACER", "atmos_mod", "o3mr"
+           "longname",     "ozone mixing ratio"
+           "units",        "kg/kg"
+       "profile_type", "fixed", "surface_value=1.e30" /
+# non-prognostic cloud amount
+ "TRACER", "atmos_mod", "cld_amt"
+           "longname",     "cloud amount"
+           "units",        "1"
+       "profile_type", "fixed", "surface_value=1.e30" /
+EOF
+
+# build the date for curr_date from DATE
+set curr_date = "0,0,0,0"
+
+# build the diag_table with the experiment name and date stamp
+cat >! diag_table << EOF
+${CASE}.${MODE}
+0 0 0 0 0 0 
+"grid_spec",    -1,  "hours",  1, "days", "time",
+"atmos_daily",  12,  "hours",  1, "days", "time",
+
+"dynamics", "grid_lon", "grid_lon", "grid_spec", "all", .false.,  "none", 2,
+"dynamics", "grid_lat", "grid_lat", "grid_spec", "all", .false.,  "none", 2,
+"dynamics", "area", "area", "grid_spec", "all", .false.,  "none", 2,
+
+"dynamics", "ps_ic", "ps_ic",   "atmos_daily", "all", .false.,  "none", 2,
+"dynamics", "ps",    "ps",      "atmos_daily", "all", .false.,  "none", 2,
+"dynamics", "ua_ic", "ua_ic",   "atmos_daily", "all", .false.,  "none", 2,
+"dynamics", "va_ic", "va_ic",   "atmos_daily", "all", .false.,  "none", 2,
+"dynamics", "us", "us",   "atmos_daily", "all", .false.,  "none", 2,
+"dynamics", "vs", "vs",   "atmos_daily", "all", .false.,  "none", 2,
+"dynamics", "w500", "w500",   "atmos_daily", "all", .false.,  "none", 2,
+"dynamics", "vort850", "vort850",   "atmos_daily", "all", .false.,  "none", 2,
+"dynamics", "temp850", "temp850",   "atmos_daily", "all", .false.,  "none", 2,
+"dynamics", "area", "area", "atmos_daily", "all", .false.,  "none", 2,
 
 
+# "dynamics",  "liq_wat",       "liq_wat",      "atmos_daily",  "all",  .false.,  "none",  2
+# "dynamics",  "ice_wat",       "ice_wat",      "atmos_daily",  "all",  .false.,  "none",  2
+# "dynamics",  "rainwat",       "rainwat",      "atmos_daily",  "all",  .false.,  "none",  2
+# "dynamics",  "snowwat",       "snowwat",      "atmos_daily",  "all",  .false.,  "none",  2
+# "dynamics",  "graupel",       "graupel",      "atmos_daily",  "all",  .false.,  "none",  2
+EOF
 
-# copy over the other tables and executable
-
-cp /work/noaa/gfdlscr/pdata/gfdl/gfdl_W/jmoualle/SHiELD/fv3_gfs_build/FV3GFS/RUN/RETRO/diag_table_no3d diag_table
-cp /work/noaa/gfdlscr/pdata/gfdl/gfdl_W/jmoualle/SHiELD/fv3_gfs_build/FV3GFS/RUN/RETRO/data_table data_table
-cp /work/noaa/gfdlscr/pdata/gfdl/gfdl_W/jmoualle/SHiELD/fv3_gfs_build/FV3GFS/RUN/RETRO/field_table_6species field_table
 
 cp $executable .
 
@@ -266,14 +316,6 @@ set d = `echo ${NAME} | cut -c7-8`
 set h = `echo ${NAME} | cut -c10-11`
 set echo
 set curr_time = "${y},${m},${d},${h},0,0"
-set curr_date = "${y},${m},${d},${h}"
-
-# build the diag_table with the experiment name and date stamp
-cat >! diag_table << EOF
-${NAME}.${CASE}.${MODE}.${MONO}
-$y $m $d $h 0 0 
-EOF
-cat ${BUILD_AREA}/RUN/RETRO/diag_table_okc_hindcasts1 >> diag_table
 
 mkdir -p INPUT/
 
@@ -389,7 +431,7 @@ cat >! input.nml <<EOF
      fv_debug = .F.
      range_warn = .F.
      reset_eta = .F.
-     !n_sponge = 4
+     !n_sponge = -1
      sg_cutoff = 150.e2 !replaces old "n_sponge"
      nudge_qv = .F.
      rf_fast = .F.
@@ -435,8 +477,6 @@ cat >! input.nml <<EOF
      hord_tr = 8
      adjust_dry_mass = .F.
      consv_te = $consv_te
-     do_sat_adj = .F.
-     do_inline_mp = .F. !T
      consv_am = .F.
      fill = .F.
      dwind_2d = .F.
@@ -446,13 +486,7 @@ cat >! input.nml <<EOF
      z_tracer = .T.
      adiabatic =.false.
      write_3d_diags = .T.
-
-!     do_schmidt = .true.
-!     target_lat = 35.5
-!     target_lon = -97.5
-!     stretch_fac = 1.
-!     full_zs_filter = .F.
-
+     is_ideal_case = .T.
 /
 
 &fv_nest_nml
@@ -478,13 +512,13 @@ cat >! input.nml <<EOF
      use_hyper_thread = $hyperthread
 /
 
-&external_ic_nml 
-     filtered_terrain = $filtered_terrain
-     levp = $ncep_levs
-     gfs_dwinds = $gfs_dwinds
-     checker_tr = .F.
-     nt_checker = 0
-/
+!&external_ic_nml
+!     filtered_terrain = $filtered_terrain
+!     levp = $ncep_levs
+!     gfs_dwinds = $gfs_dwinds
+!     checker_tr = .F.
+!     nt_checker = 0
+!/
 
 &gfdl_mp_nml
      do_qa=.false.
@@ -569,7 +603,7 @@ cat >! input_nest0$counterr.nml <<EOF
      fv_debug = .F.
      range_warn = .F.
      reset_eta = .F.
-     !n_sponge = 4
+     !n_sponge = -1
      sg_cutoff = 150.e2 !replaces old "n_sponge"
      nudge_qv = .F.
      rf_fast = .F.
@@ -614,8 +648,6 @@ cat >! input_nest0$counterr.nml <<EOF
      hord_tr = 8
      adjust_dry_mass = .F.
      consv_te = 0.
-     do_sat_adj = .F.
-     do_inline_mp = .F. !T
      consv_am = .F.
      fill = .F.
      dwind_2d = .F.
@@ -627,28 +659,17 @@ cat >! input_nest0$counterr.nml <<EOF
      write_3d_diags = .T.
      twowaynest=.T.
      nestupdate=7
+     is_ideal_case = .T.
 /
 
-&main_nml
-     months = $months
-     days  = $days
-     hours = $hours
-     minutes = $minutes
-     seconds = $seconds
-     dt_atmos = $dt_atmos
-     current_time =  $curr_date !for solo
-     !memuse_verbose = .T.
-     atmos_nthreads = $nthreads
-     use_hyper_thread = $hyperthread
-/
 
-&external_ic_nml 
-     filtered_terrain = $filtered_terrain
-     levp = $ncep_levs
-     gfs_dwinds = $gfs_dwinds
-     checker_tr = .F.
-     nt_checker = 0
-/
+!&external_ic_nml
+!     filtered_terrain = $filtered_terrain
+!     levp = $ncep_levs
+!     gfs_dwinds = $gfs_dwinds
+!     checker_tr = .F.
+!     nt_checker = 0
+!/
 
 &gfdl_mp_nml
      do_qa=.false.
