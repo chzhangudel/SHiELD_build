@@ -85,13 +85,13 @@ fms_release=wave
 drivers_release=$release
 
 git clone -b ${fv3_release}   https://github.com/NOAA-GFDL/GFDL_atmos_cubed_sphere
-git clone -b ${fms_release}   https://github.com/NOAA-GFDL/FMS
+git clone -b ${fms_release}   https://github.com/JosephMouallem/FMS
 git clone -b ${drivers_release}   https://github.com/NOAA-GFDL/atmos_drivers
 
 if [ $config_name = 'SHiELD' ] || [ $config_name = 'SHiELDFULL' ] || [ $config_name = 'SHiEMOM' ] ; then
    phy_release=$release
    git clone -b ${phy_release}   https://github.com/NOAA-GFDL/SHiELD_physics
-   git clone -b ${fms_release} https://github.com/NOAA-GFDL/FMSCoupler
+   git clone -b ${fms_release} https://github.com/JosephMouallem/FMSCoupler
 fi
 
 if [ $config_name = 'SHiELDFULL' ] ; then
