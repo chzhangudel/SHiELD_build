@@ -81,7 +81,7 @@ echo ' '
 release="main"
 
 fv3_release=$release
-fms_release="2024.02"
+fms_release=wave
 drivers_release=$release
 
 git clone -b ${fv3_release}   https://github.com/NOAA-GFDL/GFDL_atmos_cubed_sphere
