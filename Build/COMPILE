@@ -51,7 +51,7 @@ spin()
   config="shield"
   hydro="nh"
   comp="prod"
-  bit="32bit"
+  bit="64bit"
   avx="Y"
   compiler="intel"
   clean="noclean"

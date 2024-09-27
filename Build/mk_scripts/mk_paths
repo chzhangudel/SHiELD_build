@@ -129,7 +129,8 @@ elif  [ ${CONFIG} = 'shiemom' ] ; then
       GFDL_atmos_cubed_sphere/tools/ \
       GFDL_atmos_cubed_sphere/model/ \
       GFDL_atmos_cubed_sphere/GFDL_tools/fv_diag_column.F90 \
-      land_null/
+      land_null/ \
+      wave_null/
 
   list_paths -o ${BUILD_ROOT}/Build/exec/${CONFIG}_${HYDRO}.${COMP}.${BIT}.${COMPILER}/pathnames_driver \
       atmos_drivers/SHiELDFULL/ \
