@@ -32,18 +32,17 @@ case $hostname in
 
       . ${MODULESHOME}/init/sh
       module unload PrgEnv-pgi PrgEnv-intel PrgEnv-gnu
+      module unload darshan-runtime
       module load   PrgEnv-intel
       module rm intel-classic
       module rm intel-oneapi
       module rm intel
       module rm gcc
-      module load intel-classic/2022.2.1
+      module load intel-classic/2023.2.0
       module unload cray-libsci
       module load cray-hdf5
       module load cray-netcdf
       module load craype-hugepages4M
-      module load cmake/3.23.1
-      module load libyaml/0.2.5
 
       # Add -DHAVE_GETTID to the FMS cppDefs
       export FMS_CPPDEFS=-DHAVE_GETTID
@@ -54,7 +53,11 @@ case $hostname in
       export CXX=CC
       export LD=ftn
       export TEMPLATE=site/intel.mk
+      export TEMPLATE_WW3=site/intel-WW3.mk
       export LAUNCHER=srun
+      
+      # Needed with the new Environment on C5 as of 10/16/2024
+      setenv FI_VERBS_PREFER_XRC 0
 
       # highest level of AVX support
       export AVX_LEVEL=-march=core-avx2
@@ -87,6 +90,7 @@ case $hostname in
       export CXX=CC
       export LD=ftn
       export TEMPLATE=site/intel.mk
+      export TEMPLATE_WW3=site/intel-WW3.mk
       export LAUNCHER=srun
 
       # highest level of AVX support
@@ -116,6 +120,7 @@ case $hostname in
       export CXX=mpicpc
       export LD=mpiifort
       export TEMPLATE=site/intel.mk
+      export TEMPLATE_WW3=site/intel-WW3.mk
       export LAUNCHER=srun
 
       # highest level of AVX support
@@ -146,6 +151,7 @@ case $hostname in
       export CXX=mpicpc
       export LD=mpiifort
       export TEMPLATE=site/intel.mk
+      export TEMPLATE_WW3=site/intel-WW3.mk
       export LAUNCHER=srun
       echo -e ' '
       module list
@@ -169,6 +175,7 @@ case $hostname in
       export CXX=mpicpc
       export LD=mpiifort
       export TEMPLATE=site/intel.mk
+      export TEMPLATE_WW3=site/intel-WW3.mk
       export LAUNCHER=srun
 
       # highest level of AVX support
@@ -197,6 +204,7 @@ case $hostname in
       export CXX=mpicpc
       export LD=mpiifort
       export TEMPLATE=site/intel.mk
+      export TEMPLATE_WW3=site/intel-WW3.mk
       export LAUNCHER="mpirun -prepend-rank"
 
       # highest level of AVX support
@@ -227,6 +235,7 @@ case $hostname in
       export CXX=mpicxx
       export LD=mpif90
       export TEMPLATE=site/intel.mk
+      export TEMPLATE_WW3=site/intel-WW3.mk
       export LAUNCHER=srun
 
       # highest level of AVX support

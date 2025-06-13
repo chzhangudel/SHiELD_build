@@ -104,6 +104,14 @@ fi
 if [ $config_name = 'SHiEMOM' ] ; then
    git clone  https://github.com/NOAA-GFDL/land_null
    git clone  https://github.com/NOAA-GFDL/ice_param
+   git clone  https://github.com/chzhangudel/wave_null.git
+   cd ../SHiELD_build/
+   ./CHECKOUT_mom6.csh
+fi
+
+if [ $config_name = 'SHiEWaMOM' ] ; then
+   git clone  https://github.com/NOAA-GFDL/land_null
+   git clone  https://github.com/NOAA-GFDL/ice_param
    cd ../SHiELD_build/
    ./CHECKOUT_mom6.csh
 fi

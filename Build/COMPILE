@@ -65,7 +65,7 @@ spin()
   for arg in "$@"
   do
       case $arg in
-          shield|solo|shieldfull|shiemom)
+          shield|solo|shieldfull|shiemom|shiewamom)
              config="${arg#*=}"
              if [ $config = 'solo' ] ; then
                config_name="SOLO"
@@ -75,6 +75,9 @@ spin()
              fi
              if [ $config = 'shiemom' ] ; then
                config_name="SHiEMOM"
+             fi
+             if [ $config = 'shiewamom' ] ; then
+               config_name="SHiEWaMOM" 
              fi
              shift # Remove "config" from processing
              ;;
@@ -151,6 +154,11 @@ if [ $compiler = "nvhpc" ] && [ $config = "shiemom" ] ; then
   exit 1
 fi
 
+if [ $compiler = "nvhpc" ] && [ $config = "shiewamom" ] ; then
+  echo -e ">>> option '$compiler' with '$config' is not a valid configuration"
+  exit 1
+fi
+
 #
 # set up some default variables for use within the helper scripts
 export BUILD_ROOT=${PWD%/*}
@@ -215,6 +223,7 @@ fi
      sleep 2
      \rm -rf mom6/*
      \rm -rf sis2/*
+     \rm -rf ww3/*
   fi
 
 # If EXTERNAL_LIBS is set, then the program will use the path defined by
@@ -260,6 +269,19 @@ if [ $config = "shiemom" ] ; then
 # for sis2
   ./BUILDsis2 ${compiler} ${bit}
      echo "DONE WITH SIS2"
+
+elif [ $config = "shiewamom" ]; then
+# for mom6
+  ./BUILDmom6 ${compiler} ${bit}
+     echo "DONE WITH MOM6"
+
+# for sis2
+  ./BUILDsis2 ${compiler} ${bit}
+     echo "DONE WITH SIS2"
+
+# for ww3
+  ./BUILDww3 ${compiler} ${bit}
+     echo "DONE WITH ww3"
 fi
 
 #

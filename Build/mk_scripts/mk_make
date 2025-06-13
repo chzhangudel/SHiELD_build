@@ -41,7 +41,7 @@ pic="nopic"
 for arg in "$@"
 do
     case $arg in
-        shield|solo|shieldfull|shiemom)
+        shield|solo|shieldfull|shiemom|shiewamom)
           CONFIG="${arg#*=}"
           shift # Remove CONFIG from processing
           ;;
@@ -104,15 +104,24 @@ elif [ ${CONFIG} = 'shiemom'  ] ; then
   NCEPLIBS+=" ${NCEP_DIR}/libFMS/${COMPILER}/${bit}/libFMS.a"
   NCEPLIBS+=" ./libgfs.a"
   NCEPLIBS+=" -L${NCEP_DIR}/nceplibs/${COMPILER}/ -lbacio  -lsp_d  -lw3emc_d  -lw3nco_d"
+elif [ ${CONFIG} = 'shiewamom'  ] ; then
+  NCEPLIBS="./libfv3.a"
+  NCEPLIBS+=" ${NCEP_DIR}/sis2/libsis2.a"
+  NCEPLIBS+=" ${NCEP_DIR}/mom6/libmom6.a"
+  NCEPLIBS+=" ${NCEP_DIR}/ww3/libww3.a"
+  NCEPLIBS+=" ${NCEP_DIR}/libFMS/${COMPILER}/${bit}/libFMS.a"
+  NCEPLIBS+=" ./libgfs.a"
+  NCEPLIBS+=" -L${NCEP_DIR}/nceplibs/${COMPILER}/ -lbacio  -lsp_d  -lw3emc_d  -lw3nco_d"
+  NCEPLIBS+=" -L${NCEP_DIR}/ww3 -lww3"
 fi
 
-if [ ${CONFIG} = 'shield' ] ||  [ ${CONFIG} = 'shieldfull' ] || [ ${CONFIG} = 'shiemom' ]  ; then
+if [ ${CONFIG} = 'shield' ] ||  [ ${CONFIG} = 'shieldfull' ] || [ ${CONFIG} = 'shiemom' ] || [ ${CONFIG} = 'shiewamom' ]  ; then
   (cd exec/${CONFIG}_${HYDRO}.${comp}.${bit}.${COMPILER} ; make -j 8 OPENMP=Y ${COMP} AVX=${AVX} PIC=${PIC} -f Makefile_gfs)
 fi
 
 (cd exec/${CONFIG}_${HYDRO}.${comp}.${bit}.${COMPILER} ; make -j 8 OPENMP=Y NETCDF=3 ${COMP} AVX=${AVX} ${BIT} PIC=${PIC} NCEPLIBS="${NCEPLIBS}" -f Makefile_fv3)
 
-if [ ${CONFIG} = 'shield' ] ||  [ ${CONFIG} = 'shieldfull' ] || [ ${CONFIG} = 'shiemom' ] ; then
+if [ ${CONFIG} = 'shield' ] ||  [ ${CONFIG} = 'shieldfull' ] || [ ${CONFIG} = 'shiemom' ] || [ ${CONFIG} = 'shiewamom' ] ; then
    (cd exec/${CONFIG}_${HYDRO}.${comp}.${bit}.${COMPILER} ; make -j 8 OPENMP=Y NETCDF=3 ${COMP} AVX=${AVX} ${BIT} PIC=${PIC} NCEPLIBS="${NCEPLIBS}" -f Makefile_driver)
 fi
 exit 0
