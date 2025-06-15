@@ -39,7 +39,7 @@ config_name="SHiELD"
 for arg in "$@"
   do
       case $arg in
-          solo|shield|shieldfull|shiemom)
+          solo|shield|shieldfull|shiemom|shiewamom)
              config="${arg#*=}"
              if [ $config = 'solo' ] ; then
                config_name="SOLO"
@@ -53,6 +53,9 @@ for arg in "$@"
              if [ $config = 'shiemom' ] ; then
                config_name="SHiEMOM"
              fi
+             if [ $config = 'shiewamom' ] ; then
+               config_name="SHiEWaMOM"
+             fi
              shift # Remove "config" from processing
              ;;
           *)
@@ -65,6 +68,7 @@ for arg in "$@"
           echo -e "\t[shield]     \t\t\t SHiELD configuration"
           echo -e "\t[shieldfull] \t\t\t SHiELD with the full coupler configuration"
           echo -e "\t[shiemom]    \t\t\t SHiEMOM (SHiELD+MOM6/SIS2) configuration"
+          echo -e "\t[shiewamom]  \t\t\t SHiEWaMOM (SHiELD+MOM6/SIS2+WW3) configuration"
           echo -e "\n"
           exit
           ;;
@@ -85,13 +89,17 @@ fms_release=wave
 drivers_release=$release
 
 git clone -b ${fv3_release}   https://github.com/NOAA-GFDL/GFDL_atmos_cubed_sphere
+(cd GFDL_atmos_cubed_sphere; git checkout add33b9; )
 git clone -b ${fms_release}   https://github.com/JosephMouallem/FMS
 git clone -b ${drivers_release}   https://github.com/NOAA-GFDL/atmos_drivers
+(cd atmos_drivers; git checkout f6e2668; )
 
-if [ $config_name = 'SHiELD' ] || [ $config_name = 'SHiELDFULL' ] || [ $config_name = 'SHiEMOM' ] ; then
+if [ $config_name = 'SHiELD' ] || [ $config_name = 'SHiELDFULL' ] || [ $config_name = 'SHiEMOM' ] || [ $config_name = 'SHiEWaMOM' ] ; then
    phy_release=$release
    git clone -b ${phy_release}   https://github.com/NOAA-GFDL/SHiELD_physics
+   (cd SHiELD_physics; git checkout e56321f; )
    git clone -b ${fms_release} https://github.com/JosephMouallem/FMSCoupler
+   (cd FMSCoupler; git checkout d777aed; )
 fi
 
 if [ $config_name = 'SHiELDFULL' ] ; then
@@ -104,16 +112,19 @@ fi
 if [ $config_name = 'SHiEMOM' ] ; then
    git clone  https://github.com/NOAA-GFDL/land_null
    git clone  https://github.com/NOAA-GFDL/ice_param
-   git clone  https://github.com/chzhangudel/wave_null.git
+   git clone  https://github.com/chzhangudel/wave_null
    cd ../SHiELD_build/
    ./CHECKOUT_mom6.csh
 fi
 
 if [ $config_name = 'SHiEWaMOM' ] ; then
    git clone  https://github.com/NOAA-GFDL/land_null
+   (cd land_null; git checkout 58cee10; )
    git clone  https://github.com/NOAA-GFDL/ice_param
+   (cd ice_param; git checkout 1d19a57; )
    cd ../SHiELD_build/
    ./CHECKOUT_mom6.csh
+   ./CHECKOUT_ww3.csh
 fi
 
 #Automatic release tracking from Matt M.

@@ -82,7 +82,7 @@ elif [ ${CONFIG} = 'shield' ] ; then
   list_paths -o ${BUILD_ROOT}/Build/exec/${CONFIG}_${HYDRO}.${COMP}.${BIT}.${COMPILER}/pathnames_fv3 \
       SHiELD_physics/FV3GFS/ \
       atmos_drivers/SHiELD/atmos_model.F90 \
-      GFDL_atmos_cubed_sphere/driver/SHiELD/atmosphere.F90 \
+      GFDL_atmos_cubed_sphere/driver/SHiELD/ \
       GFDL_atmos_cubed_sphere/tools/ \
       GFDL_atmos_cubed_sphere/model/ \
       GFDL_atmos_cubed_sphere/GFDL_tools/fv_diag_column.F90
@@ -111,7 +111,7 @@ elif [ ${CONFIG} = 'shieldfull' ] ; then
   list_paths -o ${BUILD_ROOT}/Build/exec/${CONFIG}_${HYDRO}.${COMP}.${BIT}.${COMPILER}/pathnames_driver \
       atmos_drivers/SHiELDFULL/ \
       SHiELD_physics/atmos_shared/  \
-      GFDL_atmos_cubed_sphere/driver/SHiELDFULL/atmosphere.F90 \
+      GFDL_atmos_cubed_sphere/driver/SHiELDFULL/ \
       FMSCoupler/full/ \
       FMSCoupler/shared/
 
@@ -135,7 +135,7 @@ elif  [ ${CONFIG} = 'shiemom' ] ; then
   list_paths -o ${BUILD_ROOT}/Build/exec/${CONFIG}_${HYDRO}.${COMP}.${BIT}.${COMPILER}/pathnames_driver \
       atmos_drivers/SHiELDFULL/ \
       SHiELD_physics/atmos_shared/  \
-      GFDL_atmos_cubed_sphere/driver/SHiELDFULL/atmosphere.F90 \
+      GFDL_atmos_cubed_sphere/driver/SHiELDFULL/ \
       FMSCoupler/full/ \
       FMSCoupler/shared/
 
@@ -158,7 +158,7 @@ elif  [ ${CONFIG} = 'shiewamom' ] ; then
   list_paths -o ${BUILD_ROOT}/Build/exec/${CONFIG}_${HYDRO}.${COMP}.${BIT}.${COMPILER}/pathnames_driver \
       atmos_drivers/SHiELDFULL/ \
       SHiELD_physics/atmos_shared/  \
-      GFDL_atmos_cubed_sphere/driver/SHiELDFULL/atmosphere.F90 \
+      GFDL_atmos_cubed_sphere/driver/SHiELDFULL/ \
       FMSCoupler/full/ \
       FMSCoupler/shared/ \
       WW3/model/CPL

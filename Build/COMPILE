@@ -214,6 +214,7 @@ fi
      \rm -rf nceplibs/${compiler}/*
      \rm -rf mom6/*
      \rm -rf sis2/*
+     \rm -rf ww3/*
   elif [ ${clean} = "clean" ] ; then
      echo " cleaning build directory in 2 seconds"
      sleep 2

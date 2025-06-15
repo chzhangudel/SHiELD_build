@@ -24,17 +24,24 @@ Be sure to download the mkmf submodule prior to beginning.  To use:
 
  1) Checkout code via CHECKOUT_code script
     - ./CHECKOUT_code will checkout necessary files for shields (running with either simple or full coupler)
-    - ./CHECKOUT_code will automatically run ./CHECKOUT_mom6 for mom6/sis2 files
+    - ./CHECKOUT_code shiemom will automatically run ./CHECKOUT_mom6 for MOM6/SIS2 files
+    - ./CHECKOUT_code shiewamom will automatically run ./CHECKOUT_mom6 (MOM6/SIS2 files) and ./CHECKOUT_ww3 (WW3 fiels)
 
- 2) cd Build and execute ./COMPILE script with the --help option to see usage
+ 2) Download and update the submodule mkmf: git submodule update --init mkmf
 
- 3) COMPILE:
+ 3) (For SHiEWaMOM) set up the wave model. The wave model source code must be pre-processed using WAVEWATCH provided programs to convert to standard FORTRAN 90 files.
+    - ./Wave_Compile.csh
+
+ 4) cd Build and execute ./COMPILE script with the --help option to see usage
+
+ 5) COMPILE:
     - ./COMPILE shield:     will compile shield with simple coupler
     - ./COMPILE shieldfull: will compile shield with full coupler (utilizing null modules for ocean, land, ice)
     - ./COMPILE shiemom:    will compile mom6, sis2, fv3, gfs as libraries and link them to the full coupler (no null ocean and ice modules.)
     - ./COMPILE shiewamom:  will compile mom6, sis2, ww3, fv3, gfs as libraries and link them to the full coupler (no null ocean, wave and ice modules.)
 
       Example: ./COMPILE shield nh repro 32bit intel
+
 
 # Disclaimer
 
